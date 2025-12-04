@@ -27,34 +27,60 @@ const SplashScreen = () => {
       <div className={`relative transition-all duration-1000 transform ${show ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-90 translate-y-10'}`}>
           
           {/* Logo 背后的光晕 */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-amber-400/20 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-amber-400/20 rounded-full blur-3xl animate-pulse" />
 
-          {/* Molten V Logo (大尺寸版) */}
-          <svg width="120" height="120" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-2xl relative z-10">
+          {/* 新的艺术化 "V" Logo (更美观、更有意义) */}
+          <svg width="140" height="140" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-2xl relative z-10">
             <defs>
-              <linearGradient id="splashGold" x1="10%" y1="0%" x2="90%" y2="100%">
+              <linearGradient id="splashGold" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#FCD34D" />
-                <stop offset="40%" stopColor="#F59E0B" />
-                <stop offset="100%" stopColor="#92400E" />
+                <stop offset="50%" stopColor="#F59E0B" />
+                <stop offset="100%" stopColor="#B45309" />
               </linearGradient>
+              <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
             </defs>
+            
+            {/* 主体 V 形 (左翼) */}
             <path 
-              d="M 32 32 L 50 72 L 68 38" 
+              d="M 50 40 C 50 40, 60 100, 100 160" 
               stroke="url(#splashGold)" 
-              strokeWidth="16" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-              className="animate-[draw_2s_ease-out_forwards]" // 可选：如果你想要描边动画，可以在 CSS 加 keyframes
+              strokeWidth="12" 
+              strokeLinecap="round"
+              filter="url(#glow)"
+              className="animate-[draw_2s_ease-out_forwards]"
+              strokeDasharray="200"
+              strokeDashoffset="200"
             />
-            <circle cx="78" cy="30" r="7" fill="url(#splashGold)" className="animate-bounce delay-75" />
-            <circle cx="88" cy="18" r="4" fill="url(#splashGold)" opacity="0.9" className="animate-bounce delay-150" />
+            
+            {/* 主体 V 形 (右翼) */}
+            <path 
+              d="M 150 40 C 150 40, 140 100, 100 160" 
+              stroke="url(#splashGold)" 
+              strokeWidth="12" 
+              strokeLinecap="round"
+              filter="url(#glow)"
+              className="animate-[draw_2s_ease-out_forwards_0.5s]"
+              strokeDasharray="200"
+              strokeDashoffset="200"
+            />
+
+            {/* 上升的灵魂/光点 */}
+            <circle cx="100" cy="160" r="8" fill="url(#splashGold)" className="animate-bounce-slow delay-1000" filter="url(#glow)" />
+            <circle cx="100" cy="130" r="5" fill="url(#splashGold)" opacity="0.8" className="animate-pulse-slow delay-1200" filter="url(#glow)" />
+            <circle cx="100" cy="105" r="3" fill="url(#splashGold)" opacity="0.6" className="animate-pulse-slow delay-1400" filter="url(#glow)" />
           </svg>
       </div>
 
       {/* 3. 品牌文字 */}
-      <div className={`mt-8 text-center transition-all duration-1000 delay-300 ${show ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-          <h1 className="font-serif text-3xl font-bold text-[#3D2E22] tracking-tight mb-1">vlinks</h1>
-          <p className="text-[10px] text-[#8C7B68] uppercase tracking-[0.3em] font-medium">Beyond the Tombstone</p>
+      <div className={`mt-8 text-center transition-all duration-1000 delay-500 ${show ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+          <h1 className="font-serif text-4xl font-bold text-[#3D2E22] tracking-tight mb-2">vlinks</h1>
+          <p className="text-xs text-[#8C7B68] uppercase tracking-[0.4em] font-medium">Beyond the Tombstone</p>
       </div>
 
     </div>
@@ -66,10 +92,10 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 2.5秒后关闭开屏页
+    // 3秒后关闭开屏页 (稍微延长以展示新动画)
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 2500);
+    }, 3000);
 
     return () => clearTimeout(timer);
   }, []);
