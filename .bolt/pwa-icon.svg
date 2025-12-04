@@ -1,0 +1,46 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 高级琥珀金渐变 -->
+    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#FCD34D" /> <!-- Amber 300 -->
+      <stop offset="50%" stopColor="#F59E0B" /> <!-- Amber 500 -->
+      <stop offset="100%" stopColor="#B45309" /> <!-- Amber 700 -->
+    </linearGradient>
+    
+    <!-- 柔光滤镜 -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- 1. 背景：深咖色圆角矩形 (Deep Espresso Squircle) -->
+  <!-- 这种深色背景能让金色的 V 极其突出，类似 X 的黑底白字，但更温暖 -->
+  <rect width="512" height="512" rx="120" fill="#3D2E22" />
+  
+  <!-- 2. Logo 主体 (居中放大) -->
+  <!-- 原始 Logo 是 100x100，这里放大 3 倍并居中 -->
+  <g transform="translate(106, 106) scale(3)">
+    
+    <!-- 左翼 -->
+    <path 
+      d="M32 32 C 32 32, 48 82, 50 82" 
+      stroke="url(#iconGradient)" 
+      stroke-width="14" 
+      stroke-linecap="round" 
+      stroke-linejoin="round"
+    />
+    
+    <!-- 右翼 -->
+    <path 
+      d="M78 32 C 78 32, 60 65, 50 82" 
+      stroke="url(#iconGradient)" 
+      stroke-width="14" 
+      stroke-linecap="round" 
+      stroke-linejoin="round"
+    />
+
+    <!-- 灵魂粒子 (带发光效果) -->
+    <circle cx="82" cy="22" r="5" fill="#F59E0B" filter="url(#glow)" />
+  </g>
+</svg>
