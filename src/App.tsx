@@ -98,8 +98,6 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/onboarding" element={<Onboarding />} />
         
-        {/* 4. 扫描入口 (Scan Memory 核心功能) */}
-        <Route path="/scan" element={<Scan />} />
         
         {/* 5. 胶囊详情页 */}
         <Route path="/capsule" element={<Capsule />} />
