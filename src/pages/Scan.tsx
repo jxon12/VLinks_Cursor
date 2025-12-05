@@ -98,7 +98,6 @@ export default function Scan() {
                           <div className="w-full h-full flex flex-col items-center justify-center bg-stone-800 text-white/50 px-6 text-center">
                               <AlertCircle size={32} className="mb-2 text-amber-500" />
                               <p className="text-sm font-bold text-white mb-1">Scanner Module Missing</p>
-                              <p className="text-xs opacity-60">Please run <code>npm install react-qr-scanner</code> in terminal.</p>
                           </div>
                       )}
                   </Suspense>
