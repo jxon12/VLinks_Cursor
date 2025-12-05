@@ -95,6 +95,8 @@ export default function Dashboard() {
                             </button>
                             <button className="w-full px-4 py-3 flex items-center gap-3 text-xs text-[#594A3C] hover:bg-[#FFF8EE] transition-colors group">
                                 <CreditCard size={16} className="text-amber-600 group-hover:scale-110 transition-transform" />
+                                
+                                
                             </button>
                             <div className="h-px bg-stone-100 my-1 mx-4" />
                             <button className="w-full px-4 py-3 flex items-center gap-3 text-xs text-[#594A3C] hover:bg-[#FFF8EE] transition-colors">
