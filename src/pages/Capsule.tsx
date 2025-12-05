@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { textToSpeech } from '../lib/elevenlabs'; // 确保这个文件存在
 import { 
   ArrowLeft, Map, MessageCircle, Heart, Play, 
   Share2, Sparkles, Mic, Send, X, Link, Download, Instagram, Facebook,
@@ -19,13 +20,12 @@ const TimelineTab = () => {
     return (
         <div className="px-5 py-6 space-y-8 relative min-h-screen bg-[#FDFBF7]">
             
-            {/* --- NEW: The Essence Section (让后代一眼看懂他是谁) --- */}
+            {/* Essence Section */}
             <div className="bg-white rounded-[24px] p-5 border border-[#EBE5DA] shadow-sm mb-8 animate-fade-in-up">
                 <p className="text-[10px] font-bold text-[#D97706] uppercase tracking-widest mb-3 flex items-center gap-1">
                     <Sparkles size={10} /> The Essence of Ah Kow
                 </p>
                 
-                {/* 快速入口 Grid */}
                 <div className="grid grid-cols-2 gap-3 mb-4">
                     <button className="flex items-center gap-3 p-3 rounded-xl bg-amber-50 hover:bg-amber-100 transition-colors text-left group">
                         <div className="w-9 h-9 rounded-full bg-white text-amber-600 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform border border-amber-100">
@@ -47,7 +47,6 @@ const TimelineTab = () => {
                     </button>
                 </div>
 
-                {/* 标签 (Traits) */}
                 <div className="flex flex-wrap gap-2">
                     <span className="px-3 py-1.5 rounded-xl bg-[#F5F2EB] text-[#594A3C] text-[11px] font-medium border border-[#E6DCCF]">Family-First</span>
                     <span className="px-3 py-1.5 rounded-xl bg-[#F5F2EB] text-[#594A3C] text-[11px] font-medium border border-[#E6DCCF]">Adventurous</span>
@@ -55,7 +54,7 @@ const TimelineTab = () => {
                 </div>
             </div>
 
-            {/* --- Timeline Starts --- */}
+            {/* Timeline */}
             <div className="relative">
                 <div className="absolute left-[22px] top-4 bottom-0 w-[2px] border-l-2 border-dashed border-stone-300" />
                 
@@ -87,32 +86,112 @@ const TimelineTab = () => {
     );
 };
 
-// ------------------- 2. Echo (Contextual Reminiscence) -------------------
+// ------------------- 2. Echo (AI Voice Enabled - 集成 ElevenLabs) -------------------
 const EchoTab = () => {
+    const [isSpeaking, setIsSpeaking] = useState(false);
+    const [aiResponse, setAiResponse] = useState("");
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+
+    // 建议：把这个 ID 放到 .env 或者常量文件里
+    const VOICE_ID = "21m00Tcm4TlvDq8ikWAM"; 
+
+    const handleSpeak = async () => {
+        if (isSpeaking) return;
+        setIsSpeaking(true);
+        
+        // 1. 模拟文本生成
+        const text = "Ah boy, it's raining heavily today. Reminds me of that afternoon we got stuck at Changi Beach. We shared that one umbrella, remember?";
+        setAiResponse(text);
+
+        // 2. 调用 ElevenLabs (请确保 API Key 已配置)
+        const audioBlob = await textToSpeech(text, VOICE_ID);
+        
+        if (audioBlob) {
+            // 3. 播放
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audio = new Audio(audioUrl);
+            audioRef.current = audio;
+            audio.play();
+            
+            audio.onended = () => setIsSpeaking(false);
+        } else {
+            console.warn("Audio generation failed or API Key missing");
+            setIsSpeaking(false); 
+        }
+    };
+
     return (
         <div className="h-[calc(100vh-200px)] relative overflow-hidden bg-black">
+            {/* 背景图 + 呼吸动画 */}
             <div className="absolute inset-0">
-                <img src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260" className="w-full h-full object-cover opacity-80" />
+                <img 
+                    src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260" 
+                    className={`w-full h-full object-cover opacity-80 transition-all duration-[2000ms] ${isSpeaking ? 'scale-110' : 'scale-100'}`} 
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/40" />
             </div>
+
             <div className="absolute inset-0 flex flex-col justify-between p-6 z-20">
+                {/* 顶部状态 */}
                 <div className="flex justify-between items-start text-white/90">
                     <div>
                         <span className="font-serif text-2xl font-bold tracking-tight text-white">Grandpa Lim</span>
-                        <div className="flex items-center gap-2 mt-1"><span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" /><span className="text-xs font-medium">Memory Active</span></div>
+                        <div className="flex items-center gap-2 mt-1">
+                            {/* 说话时的声波动画 */}
+                            {isSpeaking ? (
+                                <div className="flex gap-1 items-center h-3">
+                                    <span className="w-1 h-3 bg-emerald-400 animate-[bounce_1s_infinite]" />
+                                    <span className="w-1 h-2 bg-emerald-400 animate-[bounce_1s_infinite_0.2s]" />
+                                    <span className="w-1 h-3 bg-emerald-400 animate-[bounce_1s_infinite_0.4s]" />
+                                </div>
+                            ) : (
+                                <span className="w-2 h-2 bg-emerald-400 rounded-full" />
+                            )}
+                            <span className="text-xs font-medium">
+                                {isSpeaking ? "Speaking..." : "Listening"}
+                            </span>
+                        </div>
                     </div>
                     <div className="bg-white/10 backdrop-blur-md rounded-full p-2"><Video size={20} className="text-white" /></div>
                 </div>
+
+                {/* 底部交互区 */}
                 <div className="space-y-6">
-                    <div className="bg-black/60 backdrop-blur-xl rounded-3xl p-6 border border-white/10 shadow-2xl">
-                        <p className="text-white text-lg font-serif font-medium leading-relaxed">
-                            "It's raining heavily today... <span className="text-amber-300">Reminds me of that afternoon we got stuck at Changi Beach.</span> We shared that one umbrella, remember? I hope you're staying dry."
-                        </p>
-                    </div>
+                    {/* 字幕 */}
+                    {aiResponse ? (
+                        <div className="bg-black/60 backdrop-blur-xl rounded-3xl p-6 border border-white/10 shadow-2xl animate-fade-in-up">
+                            <p className="text-white text-lg font-serif font-medium leading-relaxed">
+                                "{aiResponse}"
+                            </p>
+                        </div>
+                    ) : (
+                        // 默认提示
+                         <div className="flex justify-end animate-pulse">
+                             <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl rounded-tr-sm border border-white/20">
+                                <p className="text-[10px] text-white font-bold flex items-center gap-1">
+                                    <Sparkles size={10} /> 
+                                    Tap mic to say hello
+                                </p>
+                             </div>
+                        </div>
+                    )}
+
                     <div className="flex items-center justify-center gap-8 pb-6">
-                        <button className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white"><Volume2 size={24} /></button>
-                        <button className="w-20 h-20 rounded-full bg-red-500 flex items-center justify-center text-white shadow-xl hover:scale-105 transition"><Phone size={36} className="rotate-[135deg]" /></button>
-                        <button className="w-14 h-14 rounded-full bg-white text-black flex items-center justify-center shadow-lg"><Mic size={24} /></button>
+                        <button className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/30 transition">
+                            <Volume2 size={24} />
+                        </button>
+                        
+                        <button className="w-20 h-20 rounded-full bg-red-500 flex items-center justify-center text-white shadow-xl hover:scale-105 transition">
+                            <Phone size={36} className="rotate-[135deg]" />
+                        </button>
+
+                        {/* 麦克风触发器 */}
+                        <button 
+                            onClick={handleSpeak} 
+                            className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all ${isSpeaking ? 'bg-amber-500 scale-110' : 'bg-white hover:scale-105'}`}
+                        >
+                            {isSpeaking ? <Sparkles size={24} className="text-white animate-spin" /> : <Mic size={24} className="fill-black" />}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -172,7 +251,7 @@ const VaultTab = () => {
     );
 };
 
-// ------------------- 4. Letters (Healing Words - 替代 Garden) -------------------
+// ------------------- 4. Letters (Healing Words) -------------------
 const LettersTab = () => {
     const [mode, setMode] = useState<'list' | 'write-him' | 'write-self'>('list');
     const [text, setText] = useState('');
@@ -315,10 +394,7 @@ export default function Capsule() {
   };
 
   return (
-    // 布局修复：居中容器
     <div className={`min-h-screen flex justify-center ${getBgColor()} transition-colors duration-700`}>
-        
-        {/* 布局修复：限制宽度，防止横向拉伸 */}
         <div className={`w-full max-w-[430px] min-h-screen relative flex flex-col shadow-2xl transition-colors duration-700 ${getBgColor()}`}>
             
             {/* Sticky Header */}
@@ -387,8 +463,8 @@ export default function Capsule() {
                     </div>
                 </div>
             ) : (
-                /* Spacer: 关键修复 - 加大到 150px 以防遮挡 */
-                <div className="h-[150px] shrink-0" />
+                /* Spacer: 180px 以确保 Vault 标题可见 */
+                <div className="h-[180px] shrink-0" />
             )}
 
             {/* Sticky Tabs */}
