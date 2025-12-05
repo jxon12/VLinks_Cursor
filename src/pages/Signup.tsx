@@ -2,6 +2,22 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail, Lock, User } from 'lucide-react';
 
+// 复用 Logo 组件保持一致
+const MoltenVLogo = () => (
+  <svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-lg">
+    <defs>
+      <linearGradient id="premiumGold" x1="10%" y1="0%" x2="90%" y2="100%">
+        <stop offset="0%" stopColor="#FCD34D" />
+        <stop offset="40%" stopColor="#F59E0B" />
+        <stop offset="100%" stopColor="#92400E" />
+      </linearGradient>
+    </defs>
+    <path d="M 32 32 L 50 72 L 68 38" stroke="url(#premiumGold)" strokeWidth="16" strokeLinecap="round" strokeLinejoin="round"/>
+    <circle cx="78" cy="30" r="7" fill="url(#premiumGold)" />
+    <circle cx="88" cy="18" r="4" fill="url(#premiumGold)" opacity="0.9" />
+  </svg>
+);
+
 export default function Signup() {
   const navigate = useNavigate();
   const [name, setName] = useState('');
@@ -10,139 +26,68 @@ export default function Signup() {
 
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
-    // 逻辑修正：注册成功后 -> 统一进入 Dashboard (控制台)
-    // 用户可以在 Dashboard 看到空状态，然后点击 "Create" 按钮开始 Onboarding
-    navigate('/dashboard');
+    // 逻辑修正：注册后直接去 Onboarding (趁热打铁)
+    navigate('/onboarding');
   };
 
   return (
-    <div className="min-h-screen flex justify-center bg-[#F9F6F0] font-sans text-[#4A3F35]">
-      {/* 手机容器 */}
-      <div className="w-full max-w-[430px] min-h-screen relative flex flex-col px-6 bg-[#F9F6F0] overflow-hidden">
+    <div className="min-h-screen flex justify-center bg-[#FDFBF7] font-sans text-[#4A3F35]">
+      <div className="w-full max-w-[430px] min-h-screen relative flex flex-col px-7 bg-[#FDFBF7] overflow-hidden">
         
-        {/* 背景装饰光球 (保持与 Login 一致) */}
-        <div className="absolute top-[-100px] right-[-100px] w-[300px] h-[300px] bg-amber-100/50 rounded-full blur-[60px]" />
-        <div className="absolute bottom-[-50px] left-[-50px] w-[200px] h-[200px] bg-orange-100/40 rounded-full blur-[50px]" />
+        <div className="absolute top-[-150px] right-[-50px] w-[400px] h-[400px] bg-amber-100/40 rounded-full blur-[80px] pointer-events-none" />
+        <div className="absolute bottom-[-100px] left-[-100px] w-[300px] h-[300px] bg-orange-100/30 rounded-full blur-[60px] pointer-events-none" />
 
-        {/* Header: 返回按钮 */}
-        <header className="relative z-10 pt-8 pb-6">
-          <button 
-            onClick={() => navigate('/')} 
-            className="w-10 h-10 rounded-full bg-white border border-stone-100 flex items-center justify-center text-stone-500 hover:bg-stone-50 transition shadow-sm"
-          >
-            <ArrowLeft size={20} />
+        <header className="relative z-10 pt-8 pb-4">
+          <button onClick={() => navigate('/')} className="group flex items-center gap-1 text-[#8C7B68] hover:text-[#594A3C] transition-colors">
+            <div className="w-8 h-8 rounded-full border border-[#EBE5DA] flex items-center justify-center bg-white shadow-sm group-hover:bg-[#F5F2EB]">
+                <ArrowLeft size={16} />
+            </div>
+            <span className="text-xs font-medium ml-1">Back</span>
           </button>
         </header>
 
-        {/* 主内容 */}
-        <main className="relative z-10 flex-1 flex flex-col justify-center pb-10">
-            
-            {/* 品牌区域 - 方形 vl Logo */}
-            <div className="mb-8 text-center">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#3D2E22] text-amber-50 mb-4 shadow-xl shadow-amber-900/10">
-                    <span className="font-serif text-xl font-bold">vl</span>
-                </div>
-                <h1 className="font-serif text-3xl text-[#3D2E22] mb-2">Create Account</h1>
-                <p className="text-xs text-[#8C7B68]">Start building a lasting memorial.</p>
+        <div className="relative z-10 flex-1 flex flex-col items-center pt-2">
+          
+          <div className="mb-8 flex flex-col items-center animate-fade-in">
+             <div className="mb-4"><MoltenVLogo /></div>
+             <h1 className="font-serif text-3xl font-bold text-[#3D2E22] tracking-tight mb-2">Create Account</h1>
+             <p className="text-xs text-[#8C7B68] font-medium tracking-wide text-center max-w-[80%]">Start building a lasting memorial for your loved ones.</p>
+          </div>
+
+          <form onSubmit={handleSignup} className="w-full space-y-5">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-[#594A3C] ml-1 uppercase tracking-wider">Full Name</label>
+              <div className="relative group">
+                <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your Name" className="peer w-full pl-4 pr-10 py-4 rounded-2xl bg-white border border-[#EBE5DA] text-[#3D2E22] placeholder:text-stone-300 text-sm focus:outline-none focus:border-amber-400 focus:ring-4 focus:ring-amber-100/50 transition-all shadow-sm" required />
+                <div className="absolute right-4 top-4 text-[#D4C5B0] peer-focus:text-amber-500 transition-colors"><User size={18} /></div>
+              </div>
             </div>
 
-            {/* 表单 */}
-            <form onSubmit={handleSignup} className="space-y-5">
-                
-                {/* Full Name */}
-                <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-[#8C7B68] ml-1">Full Name</label>
-                    <div className="relative group">
-                        <div className="absolute left-4 top-3.5 text-[#B59878] group-focus-within:text-[#3D2E22] transition-colors">
-                            <User size={18} />
-                        </div>
-                        <input 
-                            type="text" 
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Your Name"
-                            className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white border border-[#E6DCCF] text-[#3D2E22] placeholder:text-stone-300 text-sm focus:outline-none focus:border-[#B59878] focus:ring-1 focus:ring-[#B59878] transition-all shadow-sm"
-                            required
-                        />
-                    </div>
-                </div>
-
-                {/* Email */}
-                <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-[#8C7B68] ml-1">Email</label>
-                    <div className="relative group">
-                        <div className="absolute left-4 top-3.5 text-[#B59878] group-focus-within:text-[#3D2E22] transition-colors">
-                            <Mail size={18} />
-                        </div>
-                        <input 
-                            type="email" 
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="name@example.com"
-                            className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white border border-[#E6DCCF] text-[#3D2E22] placeholder:text-stone-300 text-sm focus:outline-none focus:border-[#B59878] focus:ring-1 focus:ring-[#B59878] transition-all shadow-sm"
-                            required
-                        />
-                    </div>
-                </div>
-
-                {/* Password */}
-                <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-[#8C7B68] ml-1">Password</label>
-                    <div className="relative group">
-                        <div className="absolute left-4 top-3.5 text-[#B59878] group-focus-within:text-[#3D2E22] transition-colors">
-                            <Lock size={18} />
-                        </div>
-                        <input 
-                            type="password" 
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Create a password"
-                            className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white border border-[#E6DCCF] text-[#3D2E22] placeholder:text-stone-300 text-sm focus:outline-none focus:border-[#B59878] focus:ring-1 focus:ring-[#B59878] transition-all shadow-sm"
-                            required
-                            minLength={8}
-                        />
-                    </div>
-                    <p className="text-[10px] text-[#A89885] text-right">Must be at least 8 characters</p>
-                </div>
-
-                {/* 注册按钮 */}
-                <button 
-                    type="submit"
-                    className="w-full py-4 rounded-2xl bg-[#3D2E22] text-[#FFF8F0] font-medium text-sm shadow-xl shadow-[#3D2E22]/10 active:scale-[0.98] transition-all mt-4"
-                >
-                    Create Account
-                </button>
-
-            </form>
-
-            {/* 第三方登录 */}
-            <div className="mt-8">
-                <div className="relative flex items-center justify-center mb-6">
-                    <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-[#E6DCCF]"></div>
-                    </div>
-                    <span className="relative px-3 bg-[#F9F6F0] text-[10px] text-[#8C7B68] uppercase tracking-wider">Or continue with</span>
-                </div>
-
-                <button className="w-full py-3.5 rounded-2xl bg-white border border-[#E6DCCF] text-[#4A3F35] font-medium text-sm flex items-center justify-center gap-2 hover:bg-stone-50 transition shadow-sm">
-                    {/* Google SVG */}
-                    <svg className="w-4 h-4" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" color="#4285F4" />
-                        <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" color="#34A853" />
-                        <path fill="currentColor" d="M5.84 14.12c-.22-.66-.35-1.36-.35-2.12s.13-1.46.35-2.12V7.04H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.96l3.66-2.84z" color="#FBBC05" />
-                        <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.04l3.66 2.84c.87-2.6 3.3-4.5 6.16-4.5z" color="#EA4335" />
-                    </svg>
-                    Google
-                </button>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-[#594A3C] ml-1 uppercase tracking-wider">Email</label>
+              <div className="relative group">
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@example.com" className="peer w-full pl-4 pr-10 py-4 rounded-2xl bg-white border border-[#EBE5DA] text-[#3D2E22] placeholder:text-stone-300 text-sm focus:outline-none focus:border-amber-400 focus:ring-4 focus:ring-amber-100/50 transition-all shadow-sm" required />
+                <div className="absolute right-4 top-4 text-[#D4C5B0] peer-focus:text-amber-500 transition-colors"><Mail size={18} /></div>
+              </div>
             </div>
 
-            <div className="mt-8 text-center pb-6">
-                 <p className="text-xs text-[#8C7B68]">
-                    Already have an account? <button onClick={() => navigate("/login")} className="font-semibold text-[#3D2E22] underline">Log in</button>
-                 </p>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-[#594A3C] ml-1 uppercase tracking-wider">Password</label>
+              <div className="relative group">
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Create a password" className="peer w-full pl-4 pr-10 py-4 rounded-2xl bg-white border border-[#EBE5DA] text-[#3D2E22] placeholder:text-stone-300 text-sm focus:outline-none focus:border-amber-400 focus:ring-4 focus:ring-amber-100/50 transition-all shadow-sm" required minLength={8} />
+                <div className="absolute right-4 top-4 text-[#D4C5B0] peer-focus:text-amber-500 transition-colors"><Lock size={18} /></div>
+              </div>
             </div>
 
-        </main>
+            <button type="submit" className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#F59E0B] to-[#D97706] text-white font-semibold text-sm shadow-xl hover:scale-[1.01] active:scale-[0.98] transition-all duration-200 mt-6">
+              Create Account
+            </button>
+          </form>
+
+          <p className="text-center text-sm text-[#594A3C] mt-auto mb-8 pb-4">
+            Already have an account? <button onClick={() => navigate('/login')} className="text-[#D97706] hover:text-[#B45309] font-bold transition-colors">Login</button>
+          </p>
+        </div>
       </div>
     </div>
   );
