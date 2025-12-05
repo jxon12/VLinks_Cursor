@@ -1,8 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense, lazy } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ScanLine, Search, Loader2, Zap, AlertCircle } from 'lucide-react';
+import { ArrowLeft, ScanLine, Search, Loader2, Zap, AlertCircle, Camera } from 'lucide-react';
+
+// --- 关键修改：安全动态引入 ---
+// 这样即使没有安装库，App 也不会直接白屏崩溃，而是显示 Fallback
 // @ts-ignore
-import QrScanner from 'react-qr-scanner'; // 引入真实扫描库
+const QrScanner = lazy(() => import('react-qr-scanner').catch(() => {
+    return { default: () => <div className="flex h-full items-center justify-center bg-black/80 text-white/50 text-xs">Scanner Library Not Found</div> };
+}));
 
 export default function Scan() {
   const navigate = useNavigate();
@@ -10,48 +15,55 @@ export default function Scan() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [cameraPermission, setCameraPermission] = useState(true);
+  const [isScannerLoaded, setIsScannerLoaded] = useState(false);
 
-  // 处理扫描结果
+  // 检查库是否加载成功
+  useEffect(() => {
+    import('react-qr-scanner')
+        .then(() => setIsScannerLoaded(true))
+        .catch(() => {
+            console.warn("React QR Scanner not installed. Run: npm install react-qr-scanner");
+            setIsScannerLoaded(false);
+        });
+  }, []);
+
   const handleScan = (data: any) => {
     if (data && data.text) {
       const scannedText = data.text;
-      console.log("Scanned:", scannedText);
-      
-      // 1. 简单的防抖：如果正在跳转中，忽略
+      // 防抖
       if (loading) return;
 
-      // 2. 解析逻辑
-      // 情况 A: 扫到了完整链接 "https://vlinks.app/capsule/lim-ah-kow"
-      // 情况 B: 扫到了纯 ID "lim-ah-kow"
+      // 解析逻辑: 提取 ID
       let capsuleId = scannedText;
-      
       if (scannedText.includes('/capsule/')) {
           const parts = scannedText.split('/capsule/');
           if (parts.length > 1) {
-              capsuleId = parts[1].replace(/\/$/, ""); // 去掉末尾斜杠
+              capsuleId = parts[1].replace(/\/$/, ""); 
           }
       }
 
-      // 3. 执行跳转
-      setLoading(true);
-      // 模拟一点延迟让用户看到"识别成功"的反馈
-      setTimeout(() => {
-          navigate(`/capsule/${capsuleId}`);
-          setLoading(false);
-      }, 500);
+      // 只有当看起来像有效 ID 时才跳转 (简单的长度检查)
+      if (capsuleId && capsuleId.length > 2) {
+          setLoading(true);
+          // 震动反馈 (如果设备支持)
+          if (navigator.vibrate) navigator.vibrate(200);
+          
+          setTimeout(() => {
+              navigate(`/capsule/${capsuleId}`);
+              setLoading(false);
+          }, 500);
+      }
     }
   };
 
   const handleError = (err: any) => {
     console.error(err);
-    // 简单的错误处理，可能是权限被拒绝
     if (err?.name === 'NotAllowedError') {
         setCameraPermission(false);
-        setError("Camera access denied. Please enable permissions.");
+        setError("Camera access denied.");
     }
   };
 
-  // 手动输入搜索
   const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!code) return;
@@ -61,32 +73,50 @@ export default function Scan() {
   return (
     <div className="min-h-screen bg-black text-white font-sans relative overflow-hidden flex flex-col">
       
-      {/* 1. 真实摄像头背景 */}
-      <div className="absolute inset-0 z-0 bg-black flex items-center justify-center">
+      {/* 1. 摄像头区域 */}
+      <div className="absolute inset-0 z-0 bg-stone-900 flex items-center justify-center">
           {cameraPermission ? (
               <div className="w-full h-full relative">
-                  <QrScanner
-                    delay={300}
-                    onError={handleError}
-                    onScan={handleScan}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    constraints={{
-                        video: { facingMode: 'environment' } // 优先使用后置摄像头
-                    }}
-                  />
-                  {/* 扫描时的覆盖层，增加科技感 */}
-                  <div className="absolute inset-0 bg-black/10" />
+                  {/* 使用 Suspense 包裹，防止白屏 */}
+                  <Suspense fallback={
+                      <div className="w-full h-full flex flex-col items-center justify-center text-white/30">
+                          <Camera size={48} className="mb-2 animate-pulse" />
+                          <p className="text-xs">Initializing Camera...</p>
+                      </div>
+                  }>
+                      {isScannerLoaded ? (
+                          <QrScanner
+                            delay={300}
+                            onError={handleError}
+                            onScan={handleScan}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            constraints={{
+                                video: { facingMode: 'environment' } // 后置摄像头
+                            }}
+                          />
+                      ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center bg-stone-800 text-white/50 px-6 text-center">
+                              <AlertCircle size={32} className="mb-2 text-amber-500" />
+                              <p className="text-sm font-bold text-white mb-1">Scanner Module Missing</p>
+                              <p className="text-xs opacity-60">Please run <code>npm install react-qr-scanner</code> in terminal.</p>
+                          </div>
+                      )}
+                  </Suspense>
+                  
+                  {/* 扫描时的深色遮罩 */}
+                  <div className="absolute inset-0 bg-black/20" />
               </div>
           ) : (
               <div className="text-center p-6 text-white/50">
                   <AlertCircle className="mx-auto mb-2" />
-                  <p className="text-sm">Camera unavailable</p>
+                  <p className="text-sm">Camera access denied</p>
+                  <button onClick={() => window.location.reload()} className="mt-4 text-xs bg-white/10 px-4 py-2 rounded-full">Retry Permission</button>
               </div>
           )}
           
-          {/* 扫描线动画 (叠加在视频之上) */}
+          {/* 扫描线动画 (视觉装饰) */}
           <div className="absolute inset-0 pointer-events-none">
-             <div className="absolute top-0 left-0 w-full h-1 bg-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.8)] animate-[scan_3s_linear_infinite]" />
+             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent shadow-[0_0_20px_rgba(245,158,11,0.8)] animate-[scan_3s_linear_infinite]" />
           </div>
       </div>
 
@@ -102,7 +132,7 @@ export default function Scan() {
         <div className="w-10" /> 
       </header>
 
-      {/* 3. 扫描取景框 (UI Overlay) */}
+      {/* 3. 扫描取景框 (覆盖层) */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-8 pointer-events-none">
           <div className="relative w-64 h-64 border-2 border-white/30 rounded-[32px] flex items-center justify-center overflow-hidden">
               {/* 四角装饰 */}
@@ -117,12 +147,12 @@ export default function Scan() {
                   </div>
               )}
           </div>
-          <p className="mt-4 text-xs text-white/80 font-medium drop-shadow-md bg-black/20 px-3 py-1 rounded-full backdrop-blur-sm">
-              Point at a vlinks QR Code
+          <p className="mt-6 text-xs text-white/90 font-medium drop-shadow-md bg-black/30 px-4 py-2 rounded-full backdrop-blur-md border border-white/10">
+              Align QR Code within frame
           </p>
       </div>
 
-      {/* 4. 手动输入区域 */}
+      {/* 4. 手动输入区域 (Fallback) */}
       <div className="relative z-20 bg-[#FDFBF7] rounded-t-[32px] p-8 pb-12 shadow-2xl animate-slide-up">
           <div className="w-12 h-1.5 bg-stone-200 rounded-full mx-auto mb-6" />
           
@@ -132,7 +162,7 @@ export default function Scan() {
                   type="text" 
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
-                  placeholder="e.g. lim-ah-kow" 
+                  placeholder="Or enter ID (e.g. lim-ah-kow)" 
                   className="w-full pl-5 pr-14 py-4 rounded-2xl bg-white border border-[#EBE5DA] text-[#3D2E22] text-sm focus:outline-none focus:border-amber-400 focus:ring-4 focus:ring-amber-100/50 shadow-inner transition-all"
               />
               <button 
