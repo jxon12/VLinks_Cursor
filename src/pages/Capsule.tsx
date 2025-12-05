@@ -8,7 +8,6 @@ import {
 
 type Tab = 'timeline' | 'echo' | 'vault' | 'letters';
 
-
 // ------------------- 1. Sensory Timeline (含 Essence Section) -------------------
 const TimelineTab = () => {
     const artifacts = [
