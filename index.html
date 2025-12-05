@@ -1,15 +1,24 @@
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>VLinks</title>
+    <title>vlinks</title>
     
+    <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />
     
+    <!-- App Icon -->
     <link rel="icon" type="image/svg+xml" href="/pwa-icon.svg" />
     <link rel="apple-touch-icon" href="/pwa-icon.svg" />
     
     <meta name="theme-color" content="#FDFBF7" />
+
+    <!-- 🚨 核心修复：防止白屏的补丁 -->
+    <!-- 必须加这一段，否则 react-qr-scanner 会报错 "global is not defined" -->
+    <script>
+      window.global = window;
+    </script>
   </head>
   <body>
     <div id="root"></div>
