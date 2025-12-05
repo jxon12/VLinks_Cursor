@@ -163,17 +163,3 @@ export default function Scan() {
     </div>
   );
 }
-```
-
-### 2. 确认 QR Code 生成逻辑 (`Dashboard.tsx` 和 `Capsule.tsx`)
-
-**注意：** 之前的代码中，QR Code 生成的 URL 是：
-`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://vlinks.app/capsule/lim-ah-kow...`
-
-这个逻辑是**完全正确**的。
-当你在 `Scan.tsx` 用摄像头扫这个码时，`react-qr-scanner` 会读取到 `https://vlinks.app/capsule/lim-ah-kow` 这串文字。
-我的 `Scan.tsx` 代码里已经加了逻辑：
-```typescript
-if (scannedText.includes('/capsule/')) {
-    // 自动提取 lim-ah-kow 并跳转
-}
