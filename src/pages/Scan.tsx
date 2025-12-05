@@ -163,11 +163,3 @@ export default function Scan() {
     </div>
   );
 }
-```
-
-### 第三步：重启服务器
-
-为了确保依赖生效，建议你在终端里按 `Ctrl + C` 停止服务，然后重新运行：
-
-```bash
-npm run dev
