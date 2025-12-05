@@ -7,4 +7,8 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
+  // 核心修复：定义全局变量
+  define: {
+    global: 'window',
+  },
 });
