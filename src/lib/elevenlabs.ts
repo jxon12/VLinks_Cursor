@@ -1,19 +1,15 @@
-// ElevenLabs 配置
-const API_KEY = import.meta.env.VITE_ELEVENLABS_KEY; // 需要在 .env 设置
+// 从环境变量读取 Key
+const API_KEY = import.meta.env.VITE_ELEVENLABS_API_KEY;
 const BASE_URL = "https://api.elevenlabs.io/v1";
 
-// 1. 获取声音列表 (用于选择哪个声音是爷爷)
-export const getVoices = async () => {
-  const response = await fetch(`${BASE_URL}/voices`, {
-    headers: { "xi-api-key": API_KEY }
-  });
-  return response.json();
-};
+// 安全检查
+if (!API_KEY) {
+  console.warn("Missing VITE_ELEVENLABS_API_KEY in .env file");
+}
 
-// 2. 文本转语音 (核心功能 - 用于 Echo)
-// text: AI 生成的回复
-// voiceId: 克隆出来的爷爷声音 ID
 export const textToSpeech = async (text: string, voiceId: string) => {
+  if (!API_KEY) return null; // 没有 Key 就不执行
+
   try {
     const response = await fetch(`${BASE_URL}/text-to-speech/${voiceId}/stream`, {
       method: "POST",
@@ -23,17 +19,16 @@ export const textToSpeech = async (text: string, voiceId: string) => {
       },
       body: JSON.stringify({
         text,
-        model_id: "eleven_multilingual_v2", // 支持中文/英文混合，更有感情
+        model_id: "eleven_multilingual_v2",
         voice_settings: {
-          stability: 0.5, // 越低越有情感波动，越高越平稳
-          similarity_boost: 0.8 // 越像原声
+          stability: 0.4, // 稍微调低一点，让声音更有感情波动
+          similarity_boost: 0.8
         }
       }),
     });
 
     if (!response.ok) throw new Error("ElevenLabs API Error");
 
-    // 返回音频 Blob
     return await response.blob();
   } catch (error) {
     console.error(error);
