@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { textToSpeech } from '../lib/elevenlabs'; // 确保这个文件存在
 import { 
   ArrowLeft, Map, MessageCircle, Heart, Play, 
   Share2, Sparkles, Mic, Send, X, Link, Download, Instagram, Facebook,
