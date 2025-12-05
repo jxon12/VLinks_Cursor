@@ -8,13 +8,14 @@ import Signup from './pages/Signup';
 import Onboarding from './pages/Onboarding';
 import Dashboard from './pages/Dashboard';
 import Capsule from './pages/Capsule';
+import Scan from './pages/Scan'; // 确保 Scan 页面已引入
 
-// --- 内部组件：Splash Screen (电影级开屏动画) ---
+// --- 内部组件：Splash Screen (极简文字版 - 无Logo) ---
 const SplashScreen = () => {
   const [start, setStart] = useState(false);
 
   useEffect(() => {
-    // 稍微延迟 100ms 启动动画，确保 DOM 已挂载，避免动画丢失
+    // 稍微延迟 100ms 启动动画，确保 DOM 已挂载
     const timer = setTimeout(() => setStart(true), 100);
     return () => clearTimeout(timer);
   }, []);
@@ -70,7 +71,7 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 3.5秒的展示时间，让用户有足够时间欣赏这个美丽的进场
+    // 3.5秒的展示时间
     const timer = setTimeout(() => {
       setLoading(false);
     }, 3500);
@@ -98,7 +99,10 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/onboarding" element={<Onboarding />} />
         
-        {/* 4. 胶囊详情页 */}
+        {/* 4. 扫描入口 (Scan Memory 核心功能) */}
+        <Route path="/scan" element={<Scan />} />
+        
+        {/* 5. 胶囊详情页 */}
         <Route path="/capsule" element={<Capsule />} />
         <Route path="/capsule/:id" element={<Capsule />} />
 
