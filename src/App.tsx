@@ -8,7 +8,6 @@ import Signup from './pages/Signup';
 import Onboarding from './pages/Onboarding';
 import Dashboard from './pages/Dashboard';
 import Capsule from './pages/Capsule';
-import Scan from './pages/Scan'; // 确保 Scan 页面已引入
 
 // --- 内部组件：Splash Screen (极简文字版 - 无Logo) ---
 const SplashScreen = () => {
