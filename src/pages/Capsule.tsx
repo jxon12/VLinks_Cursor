@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { textToSpeech } from '../lib/elevenlabs';
 import { 
   ArrowLeft, Map, MessageCircle, Heart, Play, 
   Share2, Sparkles, Mic, Send, X, Link, Download, Instagram, Facebook,
@@ -8,6 +9,105 @@ import {
 
 type Tab = 'timeline' | 'echo' | 'vault' | 'letters';
 
+const EchoTab = () => {
+    const [isSpeaking, setIsSpeaking] = useState(false);
+    const [aiResponse, setAiResponse] = useState("");
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+
+    // 假设这是我们在 ElevenLabs 克隆好的 "Grandpa Lim" 的 Voice ID
+    // 你需要去 ElevenLabs 官网复制这个 ID
+    const VOICE_ID = "21m00Tcm4TlvDq8ikWAM"; 
+
+    // 模拟：触发 AI 说话
+    const handleSpeak = async () => {
+        if (isSpeaking) return;
+        setIsSpeaking(true);
+        
+        // 1. 模拟 LLM 生成的文本 (这一步未来接 OpenAI)
+        const text = "Ah boy, it's raining heavily today. Reminds me of that afternoon we got stuck at Changi Beach. We shared that one umbrella, remember?";
+        setAiResponse(text);
+
+        // 2. 调用 ElevenLabs 生成语音
+        const audioBlob = await textToSpeech(text, VOICE_ID);
+        
+        if (audioBlob) {
+            // 3. 播放音频
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audio = new Audio(audioUrl);
+            audioRef.current = audio;
+            audio.play();
+            
+            audio.onended = () => setIsSpeaking(false);
+        } else {
+            setIsSpeaking(false); // 失败处理
+        }
+    };
+
+    return (
+        <div className="h-[calc(100vh-200px)] relative overflow-hidden bg-black">
+            {/* 背景图 + 动画 */}
+            <div className="absolute inset-0">
+                <img src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260" className={`w-full h-full object-cover opacity-80 transition-all duration-1000 ${isSpeaking ? 'scale-105' : 'scale-100'}`} />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/40" />
+            </div>
+
+            <div className="absolute inset-0 flex flex-col justify-between p-6 z-20">
+                {/* 顶部状态 */}
+                <div className="flex justify-between items-start text-white/90">
+                    <div>
+                        <span className="font-serif text-2xl font-bold tracking-tight text-white">Grandpa Lim</span>
+                        <div className="flex items-center gap-2 mt-1">
+                            {/* 说话时，绿点变成声波动画 */}
+                            {isSpeaking ? (
+                                <div className="flex gap-1 items-center h-3">
+                                    <span className="w-1 h-3 bg-emerald-400 animate-[bounce_1s_infinite]" />
+                                    <span className="w-1 h-2 bg-emerald-400 animate-[bounce_1s_infinite_0.2s]" />
+                                    <span className="w-1 h-3 bg-emerald-400 animate-[bounce_1s_infinite_0.4s]" />
+                                </div>
+                            ) : (
+                                <span className="w-2 h-2 bg-emerald-400 rounded-full" />
+                            )}
+                            <span className="text-xs font-medium">
+                                {isSpeaking ? "Speaking..." : "Listening"}
+                            </span>
+                        </div>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-md rounded-full p-2"><Video size={20} className="text-white" /></div>
+                </div>
+
+                {/* 字幕与控制 */}
+                <div className="space-y-6">
+                    {/* 动态字幕：只有说话时才显示，或者一直显示最后一句 */}
+                    {aiResponse && (
+                        <div className="bg-black/60 backdrop-blur-xl rounded-3xl p-6 border border-white/10 shadow-2xl animate-fade-in-up">
+                            <p className="text-white text-lg font-serif font-medium leading-relaxed">
+                                "{aiResponse}"
+                            </p>
+                        </div>
+                    )}
+
+                    <div className="flex items-center justify-center gap-8 pb-6">
+                        <button className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/30 transition">
+                            <Volume2 size={24} />
+                        </button>
+                        
+                        <button className="w-20 h-20 rounded-full bg-red-500 flex items-center justify-center text-white shadow-xl hover:scale-105 transition">
+                            <Phone size={36} className="rotate-[135deg]" />
+                        </button>
+
+                        {/* 麦克风 / 触发对话 */}
+                        <button 
+                            onClick={handleSpeak} // 点击这里触发测试
+                            className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all ${isSpeaking ? 'bg-amber-500 scale-110' : 'bg-white hover:scale-105'}`}
+                        >
+                            {isSpeaking ? <Sparkles size={24} className="text-white animate-spin" /> : <Mic size={24} className="fill-black" />}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
 // ------------------- 1. Sensory Timeline (含 Essence Section) -------------------
 const TimelineTab = () => {
     const artifacts = [
