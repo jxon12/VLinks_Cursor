@@ -8,7 +8,7 @@ import {
 
 type Tab = 'timeline' | 'echo' | 'vault' | 'letters';
 
-// ------------------- 1. Sensory Timeline (含 Essence Section) -------------------
+// ------------------- 1. Sensory Timeline (保持不变) -------------------
 const TimelineTab = () => {
     const artifacts = [
         { year: '1968', title: 'The Voice Tape', desc: 'Found in the attic. Practice for the wedding.', type: 'audio', duration: '0:45', color: 'bg-orange-50' },
@@ -18,14 +18,10 @@ const TimelineTab = () => {
 
     return (
         <div className="px-5 py-6 space-y-8 relative min-h-screen bg-[#FDFBF7]">
-            
-            {/* --- NEW: The Essence Section (让后代一眼看懂他是谁) --- */}
             <div className="bg-white rounded-[24px] p-5 border border-[#EBE5DA] shadow-sm mb-8 animate-fade-in-up">
                 <p className="text-[10px] font-bold text-[#D97706] uppercase tracking-widest mb-3 flex items-center gap-1">
                     <Sparkles size={10} /> The Essence of Ah Kow
                 </p>
-                
-                {/* 快速入口 Grid */}
                 <div className="grid grid-cols-2 gap-3 mb-4">
                     <button className="flex items-center gap-3 p-3 rounded-xl bg-amber-50 hover:bg-amber-100 transition-colors text-left group">
                         <div className="w-9 h-9 rounded-full bg-white text-amber-600 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform border border-amber-100">
@@ -46,19 +42,14 @@ const TimelineTab = () => {
                         </div>
                     </button>
                 </div>
-
-                {/* 标签 (Traits) */}
                 <div className="flex flex-wrap gap-2">
                     <span className="px-3 py-1.5 rounded-xl bg-[#F5F2EB] text-[#594A3C] text-[11px] font-medium border border-[#E6DCCF]">Family-First</span>
                     <span className="px-3 py-1.5 rounded-xl bg-[#F5F2EB] text-[#594A3C] text-[11px] font-medium border border-[#E6DCCF]">Adventurous</span>
                     <span className="px-3 py-1.5 rounded-xl bg-[#F5F2EB] text-[#594A3C] text-[11px] font-medium border border-[#E6DCCF]">Generous Soul</span>
                 </div>
             </div>
-
-            {/* --- Timeline Starts --- */}
             <div className="relative">
                 <div className="absolute left-[22px] top-4 bottom-0 w-[2px] border-l-2 border-dashed border-stone-300" />
-                
                 {artifacts.map((item, idx) => (
                     <div key={idx} className="relative pl-10 mb-10 animate-fade-in-up" style={{ animationDelay: `${idx * 150}ms` }}>
                         <div className="absolute left-0 top-0 w-12 flex flex-col items-center">
@@ -81,7 +72,6 @@ const TimelineTab = () => {
                     </div>
                 ))}
             </div>
-            
             <div className="text-center pt-4 pb-20"><button className="text-xs font-bold text-amber-600 border-b border-amber-600/30 hover:text-amber-800">Load earlier memories...</button></div>
         </div>
     );
@@ -122,8 +112,8 @@ const EchoTab = () => {
         console.log("正在处理关键词匹配:", lowerText);
 
         // ----- 剧本触发区 (Demo Script) -----
-        if (lowerText.includes("miss") || lowerText.includes("love") || lowerText.includes("long")) {
-            // 只要听到 miss/missed/missing/love...
+        // 包含 miss, missed, missing, mess (识别错误), love...
+        if (lowerText.includes("miss") || lowerText.includes("mess") || lowerText.includes("love") || lowerText.includes("long")) {
             response = "I know. I miss you too. But remember, I never really left.";
         } 
         else if (lowerText.includes("hello") || lowerText.includes("hi") || lowerText.includes("hey")) {
@@ -194,9 +184,6 @@ const EchoTab = () => {
 
     // 4. 听写功能 (STT - Speech to Text)
     const startListening = () => {
-        // 🚨 必须先点击页面才能播放声音 (浏览器策略)
-        // 这个函数绑定在按钮点击上，所以本身就是一次交互
-        
         // @ts-ignore
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         
@@ -330,7 +317,7 @@ const EchoTab = () => {
     )
 }
 
-// ------------------- 3. Vault (Targeted Messages) -------------------
+// ------------------- 3. Vault (Targeted Messages) (保持不变) -------------------
 const VaultTab = () => {
     const [unlockingId, setUnlockingId] = useState<number | null>(null);
 
@@ -382,7 +369,7 @@ const VaultTab = () => {
     );
 };
 
-// ------------------- 4. Letters (Healing Words - 替代 Garden) -------------------
+// ------------------- 4. Letters (Healing Words - 保持不变) -------------------
 const LettersTab = () => {
     const [mode, setMode] = useState<'list' | 'write-him' | 'write-self'>('list');
     const [text, setText] = useState('');
@@ -525,10 +512,7 @@ export default function Capsule() {
   };
 
   return (
-    // 布局修复：居中容器
     <div className={`min-h-screen flex justify-center ${getBgColor()} transition-colors duration-700`}>
-        
-        {/* 布局修复：限制宽度，防止横向拉伸 */}
         <div className={`w-full max-w-[430px] min-h-screen relative flex flex-col shadow-2xl transition-colors duration-700 ${getBgColor()}`}>
             
             {/* Sticky Header */}
@@ -597,7 +581,6 @@ export default function Capsule() {
                     </div>
                 </div>
             ) : (
-                /* Spacer: 关键修复 - 加大到 150px 以防遮挡 */
                 <div className="h-[150px] shrink-0" />
             )}
 
