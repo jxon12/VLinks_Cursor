@@ -87,130 +87,88 @@ const TimelineTab = () => {
     );
 };
 
-// ------------------- 2. Echo (The Living Memory - 修复版) -------------------
+// ------------------- 2. Echo (The Living Memory) -------------------
 const EchoTab = () => {
-    const [status, setStatus] = useState("Idle"); // Debug 状态
     const [isListening, setIsListening] = useState(false);
     const [isSpeaking, setIsSpeaking] = useState(false);
-    const [userTranscript, setUserTranscript] = useState(""); // 用户说的话
-    const [aiText, setAiText] = useState("I am listening..."); // AI 的回复
+    const [transcript, setTranscript] = useState("");
+    const [aiText, setAiText] = useState("I am listening...");
 
-    // 1. 声音初始化 (解决有时候没声音的问题)
-    const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-    useEffect(() => {
-        const loadVoices = () => {
-            const available = window.speechSynthesis.getVoices();
-            if (available.length > 0) setVoices(available);
-        };
-        loadVoices();
-        window.speechSynthesis.onvoiceschanged = loadVoices;
-    }, []);
-
-    // 2. 核心逻辑：关键词匹配 (不区分大小写，模糊匹配)
+    // 1. 简单的 "伪" AI 逻辑 (为了 Demo 的绝对流畅)
+    // 你可以在演示时只说这些特定的关键词
     const processResponse = (text: string) => {
         const lowerText = text.toLowerCase();
         let response = "";
 
-        // ----- 剧本触发区 -----
-        if (lowerText.includes("miss") || lowerText.includes("love")) {
-            // 包含 miss, missed, missing, love, loved...
-            response = "I know. I miss you too. But remember, I never really left.";
-        } 
-        else if (lowerText.includes("hello") || lowerText.includes("hi") || lowerText.includes("hey")) {
+        if (lowerText.includes("hello") || lowerText.includes("hi")) {
             response = "Hello. It is so good to hear your voice again.";
+        } else if (lowerText.includes("miss") || lowerText.includes("love")) {
+            response = "I know. I miss you too. But remember, I never really left.";
+        } else if (lowerText.includes("weather") || lowerText.includes("rain")) {
+            response = "Do not worry about the rain. It reminds me of that day we ran home together.";
+        } else if (lowerText.includes("recipe") || lowerText.includes("cook")) {
+            response = "Ah, the secret ingredient is always patience. And a little bit of extra sugar.";
+        } else {
+            // 默认回复
+            response = "I am here. Tell me more about your day.";
         }
-        else if (lowerText.includes("remember") || lowerText.includes("memory")) {
-            response = "I remember everything. Especially the sound of your laughter.";
-        }
-        else if (lowerText.includes("bye") || lowerText.includes("goodbye")) {
-            response = "Goodbye for now. I will be right here.";
-        }
-        else {
-            // 兜底回复 (万一没听清)
-            response = "I am listening. Tell me more.";
-        }
-        // --------------------
 
         setAiText(response);
         speak(response);
     };
 
-    // 3. 说话功能 (TTS)
+    // 2. 浏览器原生 TTS (说话)
     const speak = (text: string) => {
         if (!window.speechSynthesis) return;
         
-        // 强制打断之前的说话
+        // 停止之前的说话
         window.speechSynthesis.cancel();
-        setStatus("Speaking...");
 
         const utterance = new SpeechSynthesisUtterance(text);
         
-        // 尝试寻找更有磁性的男声
-        // 优先顺序: Google US English > Microsoft David > 任意英语 > 第一个声音
-        const preferredVoice = voices.find(v => v.name.includes("Google US English")) 
-                            || voices.find(v => v.name.includes("David"))
-                            || voices.find(v => v.lang.includes("en"))
-                            || voices[0];
-
-        if (preferredVoice) utterance.voice = preferredVoice;
+        // 尝试寻找一个男声 (English Male)
+        const voices = window.speechSynthesis.getVoices();
+        const maleVoice = voices.find(v => v.name.includes('Male') || v.name.includes('David') || v.name.includes('Daniel'));
+        if (maleVoice) utterance.voice = maleVoice;
         
-        utterance.rate = 0.85; // 语速调慢，更深情
-        utterance.pitch = 0.9; // 音调调低，更稳重
+        utterance.rate = 0.9; // 稍微慢一点，显得沉稳
+        utterance.pitch = 0.9; // 稍微低沉一点
 
         utterance.onstart = () => setIsSpeaking(true);
-        utterance.onend = () => {
-            setIsSpeaking(false);
-            setStatus("Idle");
-        };
+        utterance.onend = () => setIsSpeaking(false);
 
         window.speechSynthesis.speak(utterance);
     };
 
-    // 4. 听写功能 (STT)
+    // 3. 浏览器原生 STT (听话)
     const startListening = () => {
-        // @ts-ignore
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        
-        if (!SpeechRecognition) {
-            alert("此功能仅支持 Chrome 桌面版或 Android Chrome。");
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            alert("Browser not supported. Use Chrome.");
             return;
         }
 
+        // @ts-ignore
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         const recognition = new SpeechRecognition();
-        recognition.lang = 'en-US'; // 确保识别英语
+
+        recognition.lang = 'en-US';
         recognition.continuous = false;
         recognition.interimResults = false;
 
         recognition.onstart = () => {
             setIsListening(true);
-            setStatus("Listening...");
-            setUserTranscript(""); // 清空上一句
+            setTranscript("Listening...");
         };
 
         recognition.onresult = (event: any) => {
             const last = event.results.length - 1;
             const text = event.results[last][0].transcript;
-            
-            console.log("识别结果:", text); // 打开 F12 可以看到
-            setUserTranscript(text); // 强制显示在屏幕上
-            
-            // 稍微延迟一点点回复，更像真人在思考
-            setStatus("Thinking...");
-            setTimeout(() => {
-                processResponse(text);
-            }, 500);
-        };
-
-        recognition.onerror = (event: any) => {
-            console.error("识别错误:", event.error);
-            setStatus("Error: " + event.error);
-            setIsListening(false);
+            setTranscript(text);
+            processResponse(text);
         };
 
         recognition.onend = () => {
             setIsListening(false);
-            // 如果没在说话，状态回闲置
-            if (!window.speechSynthesis.speaking) setStatus("Idle");
         };
 
         recognition.start();
@@ -218,75 +176,67 @@ const EchoTab = () => {
 
     return (
         <div className="h-[calc(100vh-200px)] relative overflow-hidden bg-black transition-all duration-1000">
-            {/* 背景图：说话时放大 + 变亮 */}
-            <div className={`absolute inset-0 transition-all duration-[2000ms] ease-in-out ${isSpeaking ? 'scale-110 opacity-100' : 'scale-100 opacity-60'}`}>
+            {/* 背景图：说话时放大，增加互动感 */}
+            <div className={`absolute inset-0 transition-transform duration-[2000ms] ease-in-out ${isSpeaking ? 'scale-110' : 'scale-100'}`}>
                 <img 
                     src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260" 
-                    className="w-full h-full object-cover" 
+                    className={`w-full h-full object-cover transition-opacity duration-500 ${isSpeaking ? 'opacity-90' : 'opacity-60'}`} 
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
             </div>
 
             {/* 核心互动区 */}
-            <div className="absolute inset-0 flex flex-col justify-end p-8 z-20 pb-20">
+            <div className="absolute inset-0 flex flex-col justify-end p-8 z-20 pb-24">
                 
-                {/* 1. 用户说的话 (Debug 显示区 - 永远显示) */}
-                <div className="mb-4 text-center min-h-[20px]">
-                    {userTranscript && (
-                        <p className="text-white/60 text-sm font-medium animate-fade-in-up bg-black/30 backdrop-blur-sm inline-block px-3 py-1 rounded-full border border-white/10">
-                            You: "{userTranscript}"
-                        </button>
-                    )}
-                </div>
+                {/* 状态指示灯 (模拟录音状态) */}
+                {isListening && (
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-4">
+                        <div className="flex gap-2">
+                             {[1,2,3,4,5].map(i => (
+                                 <div key={i} className="w-2 bg-amber-400 rounded-full animate-bounce" style={{ height: `${Math.random() * 40 + 20}px`, animationDelay: `${i * 0.1}s` }} />
+                             ))}
+                        </div>
+                        <p className="text-white/80 font-serif tracking-widest text-sm animate-pulse">Listening...</p>
+                    </div>
+                )}
 
-                {/* 2. AI 回复 (字幕) */}
+                {/* AI 回复展示框 (字幕) */}
                 <div className={`transition-all duration-1000 transform ${isSpeaking ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
-                    <p className="text-amber-100 text-xl font-serif font-medium leading-relaxed text-center drop-shadow-2xl">
+                    <p className="text-amber-100 text-xl font-serif font-medium leading-relaxed text-center drop-shadow-lg">
                         "{aiText}"
                     </p>
                 </div>
 
-                {/* 3. 状态指示灯 (Listening 动画) */}
-                {isListening && (
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-4 pointer-events-none">
-                        <div className="flex gap-1.5 h-10 items-center">
-                             {[1,2,3,4,5].map(i => (
-                                 <div key={i} className="w-1.5 bg-amber-400 rounded-full animate-bounce" style={{ height: `${Math.random() * 30 + 10}px`, animationDelay: `${i * 0.1}s` }} />
-                             ))}
-                        </div>
-                    </div>
+                {/* 你的语音转文字 (可选展示) */}
+                {!isSpeaking && transcript && !isListening && (
+                    <p className="text-center text-white/50 text-xs mt-4 mb-2">You said: "{transcript}"</p>
                 )}
 
-                {/* 4. 控制按钮组 */}
-                <div className="flex items-center justify-center gap-8 mt-6">
-                    <button className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white/40 border border-white/10">
-                        <Volume2 size={20} />
+                {/* 控制按钮组 */}
+                <div className="flex items-center justify-center gap-8 mt-8">
+                    {/* 挂断按钮 */}
+                    <button className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white/60 hover:bg-white/20 transition-all">
+                        <Volume2 size={24} />
                     </button>
                     
-                    {/* 核心按钮 */}
+                    {/* 核心通话按钮 */}
                     <button 
                         onClick={startListening}
-                        disabled={isSpeaking || isListening}
-                        className={`w-20 h-20 rounded-full flex items-center justify-center text-white shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 ${
+                        disabled={isSpeaking}
+                        className={`w-20 h-20 rounded-full flex items-center justify-center text-white shadow-2xl transition-all duration-300 transform hover:scale-105 ${
                             isListening 
-                            ? 'bg-red-500 ring-4 ring-red-500/30' 
-                            : isSpeaking 
-                                ? 'bg-amber-600 ring-4 ring-amber-600/30 opacity-80' 
-                                : 'bg-emerald-500 ring-4 ring-emerald-500/30 animate-pulse-slow'
-                        }`}
+                            ? 'bg-red-500 animate-pulse ring-4 ring-red-500/30' 
+                            : 'bg-emerald-500 ring-4 ring-emerald-500/30'
+                        } ${isSpeaking ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                        {isListening ? <Video size={32} className="animate-pulse" /> : <Mic size={32} />}
+                        {isListening ? <Video size={32} /> : <Mic size={32} />}
                     </button>
                     
-                    <button className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white/40 border border-white/10">
-                        <MessageCircle size={20} />
+                    {/* 键盘输入 */}
+                    <button className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white/60 hover:bg-white/20 transition-all">
+                        <MessageCircle size={24} />
                     </button>
                 </div>
-                
-                {/* 5. 底部微型 Debug 状态栏 (演示时看不清，但你知道) */}
-                <p className="text-center text-[10px] text-white/20 mt-4 uppercase tracking-widest font-mono">
-                    Status: {status}
-                </p>
             </div>
         </div>
     )
