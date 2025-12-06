@@ -87,33 +87,155 @@ const TimelineTab = () => {
     );
 };
 
-// ------------------- 2. Echo (Contextual Reminiscence) -------------------
+// ------------------- 2. Echo (The Living Memory) -------------------
 const EchoTab = () => {
+    const [isListening, setIsListening] = useState(false);
+    const [isSpeaking, setIsSpeaking] = useState(false);
+    const [transcript, setTranscript] = useState("");
+    const [aiText, setAiText] = useState("I am listening...");
+
+    // 1. 简单的 "伪" AI 逻辑 (为了 Demo 的绝对流畅)
+    // 你可以在演示时只说这些特定的关键词
+    const processResponse = (text: string) => {
+        const lowerText = text.toLowerCase();
+        let response = "";
+
+        if (lowerText.includes("hello") || lowerText.includes("hi")) {
+            response = "Hello. It is so good to hear your voice again.";
+        } else if (lowerText.includes("miss") || lowerText.includes("love")) {
+            response = "I know. I miss you too. But remember, I never really left.";
+        } else if (lowerText.includes("weather") || lowerText.includes("rain")) {
+            response = "Do not worry about the rain. It reminds me of that day we ran home together.";
+        } else if (lowerText.includes("recipe") || lowerText.includes("cook")) {
+            response = "Ah, the secret ingredient is always patience. And a little bit of extra sugar.";
+        } else {
+            // 默认回复
+            response = "I am here. Tell me more about your day.";
+        }
+
+        setAiText(response);
+        speak(response);
+    };
+
+    // 2. 浏览器原生 TTS (说话)
+    const speak = (text: string) => {
+        if (!window.speechSynthesis) return;
+        
+        // 停止之前的说话
+        window.speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        
+        // 尝试寻找一个男声 (English Male)
+        const voices = window.speechSynthesis.getVoices();
+        const maleVoice = voices.find(v => v.name.includes('Male') || v.name.includes('David') || v.name.includes('Daniel'));
+        if (maleVoice) utterance.voice = maleVoice;
+        
+        utterance.rate = 0.9; // 稍微慢一点，显得沉稳
+        utterance.pitch = 0.9; // 稍微低沉一点
+
+        utterance.onstart = () => setIsSpeaking(true);
+        utterance.onend = () => setIsSpeaking(false);
+
+        window.speechSynthesis.speak(utterance);
+    };
+
+    // 3. 浏览器原生 STT (听话)
+    const startListening = () => {
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            alert("Browser not supported. Use Chrome.");
+            return;
+        }
+
+        // @ts-ignore
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+
+        recognition.lang = 'en-US';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onstart = () => {
+            setIsListening(true);
+            setTranscript("Listening...");
+        };
+
+        recognition.onresult = (event: any) => {
+            const last = event.results.length - 1;
+            const text = event.results[last][0].transcript;
+            setTranscript(text);
+            processResponse(text);
+        };
+
+        recognition.onend = () => {
+            setIsListening(false);
+        };
+
+        recognition.start();
+    };
+
     return (
-        <div className="h-[calc(100vh-200px)] relative overflow-hidden bg-black">
-            <div className="absolute inset-0">
-                <img src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260" className="w-full h-full object-cover opacity-80" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/40" />
+        <div className="h-[calc(100vh-200px)] relative overflow-hidden bg-black transition-all duration-1000">
+            {/* 背景图：说话时放大，增加互动感 */}
+            <div className={`absolute inset-0 transition-transform duration-[2000ms] ease-in-out ${isSpeaking ? 'scale-110' : 'scale-100'}`}>
+                <img 
+                    src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260" 
+                    className={`w-full h-full object-cover transition-opacity duration-500 ${isSpeaking ? 'opacity-90' : 'opacity-60'}`} 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
             </div>
-            <div className="absolute inset-0 flex flex-col justify-between p-6 z-20">
-                <div className="flex justify-between items-start text-white/90">
-                    <div>
-                        <span className="font-serif text-2xl font-bold tracking-tight text-white">Grandpa Lim</span>
-                        <div className="flex items-center gap-2 mt-1"><span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" /><span className="text-xs font-medium">Memory Active</span></div>
+
+            {/* 核心互动区 */}
+            <div className="absolute inset-0 flex flex-col justify-end p-8 z-20 pb-24">
+                
+                {/* 状态指示灯 (模拟录音状态) */}
+                {isListening && (
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-4">
+                        <div className="flex gap-2">
+                             {[1,2,3,4,5].map(i => (
+                                 <div key={i} className="w-2 bg-amber-400 rounded-full animate-bounce" style={{ height: `${Math.random() * 40 + 20}px`, animationDelay: `${i * 0.1}s` }} />
+                             ))}
+                        </div>
+                        <p className="text-white/80 font-serif tracking-widest text-sm animate-pulse">Listening...</p>
                     </div>
-                    <div className="bg-white/10 backdrop-blur-md rounded-full p-2"><Video size={20} className="text-white" /></div>
+                )}
+
+                {/* AI 回复展示框 (字幕) */}
+                <div className={`transition-all duration-1000 transform ${isSpeaking ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+                    <p className="text-amber-100 text-xl font-serif font-medium leading-relaxed text-center drop-shadow-lg">
+                        "{aiText}"
+                    </p>
                 </div>
-                <div className="space-y-6">
-                    <div className="bg-black/60 backdrop-blur-xl rounded-3xl p-6 border border-white/10 shadow-2xl">
-                        <p className="text-white text-lg font-serif font-medium leading-relaxed">
-                            "It's raining heavily today... <span className="text-amber-300">Reminds me of that afternoon we got stuck at Changi Beach.</span> We shared that one umbrella, remember? I hope you're staying dry."
-                        </p>
-                    </div>
-                    <div className="flex items-center justify-center gap-8 pb-6">
-                        <button className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white"><Volume2 size={24} /></button>
-                        <button className="w-20 h-20 rounded-full bg-red-500 flex items-center justify-center text-white shadow-xl hover:scale-105 transition"><Phone size={36} className="rotate-[135deg]" /></button>
-                        <button className="w-14 h-14 rounded-full bg-white text-black flex items-center justify-center shadow-lg"><Mic size={24} /></button>
-                    </div>
+
+                {/* 你的语音转文字 (可选展示) */}
+                {!isSpeaking && transcript && !isListening && (
+                    <p className="text-center text-white/50 text-xs mt-4 mb-2">You said: "{transcript}"</p>
+                )}
+
+                {/* 控制按钮组 */}
+                <div className="flex items-center justify-center gap-8 mt-8">
+                    {/* 挂断按钮 */}
+                    <button className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white/60 hover:bg-white/20 transition-all">
+                        <Volume2 size={24} />
+                    </button>
+                    
+                    {/* 核心通话按钮 */}
+                    <button 
+                        onClick={startListening}
+                        disabled={isSpeaking}
+                        className={`w-20 h-20 rounded-full flex items-center justify-center text-white shadow-2xl transition-all duration-300 transform hover:scale-105 ${
+                            isListening 
+                            ? 'bg-red-500 animate-pulse ring-4 ring-red-500/30' 
+                            : 'bg-emerald-500 ring-4 ring-emerald-500/30'
+                        } ${isSpeaking ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                        {isListening ? <Video size={32} /> : <Mic size={32} />}
+                    </button>
+                    
+                    {/* 键盘输入 */}
+                    <button className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white/60 hover:bg-white/20 transition-all">
+                        <MessageCircle size={24} />
+                    </button>
                 </div>
             </div>
         </div>
